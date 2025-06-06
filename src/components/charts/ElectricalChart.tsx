@@ -26,33 +26,47 @@ interface ElectricalChartProps {
 }
 
 const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProps) => {
-  // Format x-axis ticks based on time range and zoom level
+  // Format x-axis ticks based on time range
   const formatXAxis = (tickItem: string) => {
     try {
       const date = parseISO(tickItem);
-      if (timeRange === '24h' || zoomLevel > 2) {
-        return format(date, 'HH:mm');
-      } else if (timeRange === '7d') {
-        return format(date, 'dd/MM');
-      } else {
-        return format(date, 'dd/MM');
+      switch(timeRange) {
+        case 'realtime':
+          return format(date, 'HH:mm:ss'); // Show seconds for realtime
+        case '1h':
+          return format(date, 'HH:mm'); // Show minutes for 1 hour
+        case '24h':
+          return format(date, 'HH:mm'); // Show hours:minutes for 24h
+        case '7d':
+          return format(date, 'dd/MM HH:mm'); // Show day/month and time for 7 days
+        case '30d':
+          return format(date, 'dd/MM'); // Show day/month for 30 days
+        default:
+          return format(date, 'HH:mm');
       }
     } catch (error) {
       return '';
     }
   };
 
-  // Calculate optimal tick interval based on zoom level and data length
+  // Calculate optimal tick interval based on time range and data length
   const getTickInterval = () => {
     const dataLength = data.length;
     if (dataLength === 0) return 0;
     
-    if (zoomLevel >= 4) {
-      return Math.max(1, Math.floor(dataLength / 20));
-    } else if (zoomLevel >= 2) {
-      return Math.max(1, Math.floor(dataLength / 15));
-    } else {
-      return Math.max(1, Math.floor(dataLength / 10));
+    switch(timeRange) {
+      case 'realtime':
+        return Math.max(1, Math.floor(dataLength / 8)); // Show ~8 ticks for realtime
+      case '1h':
+        return Math.max(1, Math.floor(dataLength / 10)); // Show ~10 ticks for 1 hour
+      case '24h':
+        return Math.max(1, Math.floor(dataLength / 12)); // Show ~12 ticks for 24h
+      case '7d':
+        return Math.max(1, Math.floor(dataLength / 14)); // Show ~14 ticks for 7 days
+      case '30d':
+        return Math.max(1, Math.floor(dataLength / 15)); // Show ~15 ticks for 30 days
+      default:
+        return Math.max(1, Math.floor(dataLength / 10));
     }
   };
 
@@ -63,8 +77,11 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
     return 2;
   };
 
-  // Get dot size based on zoom level
+  // Get dot size based on zoom level and time range
   const getDotSize = () => {
+    if (timeRange === 'realtime' || timeRange === '1h') {
+      return zoomLevel >= 2 ? 4 : 3; // Show dots for short time ranges
+    }
     if (zoomLevel >= 4) return 4;
     if (zoomLevel >= 3) return 3;
     return false;
@@ -75,7 +92,27 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
     if (active && payload && payload.length) {
       try {
         const date = parseISO(label);
-        const formattedDate = format(date, 'dd MMM yyyy HH:mm');
+        let formattedDate;
+        
+        switch(timeRange) {
+          case 'realtime':
+            formattedDate = format(date, 'HH:mm:ss');
+            break;
+          case '1h':
+            formattedDate = format(date, 'HH:mm');
+            break;
+          case '24h':
+            formattedDate = format(date, 'dd MMM HH:mm');
+            break;
+          case '7d':
+            formattedDate = format(date, 'dd MMM yyyy HH:mm');
+            break;
+          case '30d':
+            formattedDate = format(date, 'dd MMM yyyy');
+            break;
+          default:
+            formattedDate = format(date, 'dd MMM yyyy HH:mm');
+        }
         
         return (
           <Box 
@@ -126,6 +163,22 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
     return null;
   };
 
+  // Get angle for x-axis labels based on time range
+  const getXAxisAngle = () => {
+    switch(timeRange) {
+      case 'realtime':
+      case '1h':
+        return 0; // Horizontal for short ranges
+      case '24h':
+        return -30; // Slight angle for medium range
+      case '7d':
+      case '30d':
+        return -45; // More angle for long ranges
+      default:
+        return 0;
+    }
+  };
+
   return (
     <Box sx={{ width: '100%', height: 300 }}>
       <ResponsiveContainer width="100%" height="100%">
@@ -135,7 +188,7 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
             top: 5, 
             right: 30, 
             left: 20, 
-            bottom: zoomLevel > 3 ? 60 : 30 
+            bottom: getXAxisAngle() !== 0 ? 60 : 30 
           }}
         >
           <CartesianGrid 
@@ -149,13 +202,13 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
             stroke="#aaa"
             tick={{ 
               fill: '#aaa', 
-              fontSize: zoomLevel > 3 ? 10 : 12,
+              fontSize: timeRange === 'realtime' ? 10 : 12,
               fontWeight: 500
             }}
             interval={getTickInterval()}
-            angle={zoomLevel > 3 ? -45 : 0}
-            textAnchor={zoomLevel > 3 ? 'end' : 'middle'}
-            height={zoomLevel > 3 ? 60 : 30}
+            angle={getXAxisAngle()}
+            textAnchor={getXAxisAngle() !== 0 ? 'end' : 'middle'}
+            height={getXAxisAngle() !== 0 ? 60 : 30}
             axisLine={{ stroke: 'rgba(255, 255, 255, 0.2)' }}
             tickLine={{ stroke: 'rgba(255, 255, 255, 0.2)' }}
           />
