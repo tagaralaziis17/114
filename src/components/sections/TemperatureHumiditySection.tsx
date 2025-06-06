@@ -273,7 +273,7 @@ const TemperatureHumiditySection = ({
           {/* NOC Temperature */}
           <Grid item xs={12} sm={6}>
             {loading ? (
-              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
+              <Skeleton variant="rectangular\" height={200} sx={{ borderRadius: 3 }} />
             ) : (
               <ElegantValueDisplay 
                 value={data.nocTemperature.suhu}
@@ -290,7 +290,7 @@ const TemperatureHumiditySection = ({
           {/* UPS Temperature */}
           <Grid item xs={12} sm={6}>
             {loading ? (
-              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
+              <Skeleton variant="rectangular\" height={200} sx={{ borderRadius: 3 }} />
             ) : (
               <ElegantValueDisplay 
                 value={data.upsTemperature.suhu}
@@ -307,7 +307,7 @@ const TemperatureHumiditySection = ({
           {/* NOC Humidity */}
           <Grid item xs={12} sm={6}>
             {loading ? (
-              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
+              <Skeleton variant="rectangular\" height={200} sx={{ borderRadius: 3 }} />
             ) : (
               <ElegantValueDisplay 
                 value={data.nocHumidity.kelembapan}
@@ -324,7 +324,7 @@ const TemperatureHumiditySection = ({
           {/* UPS Humidity */}
           <Grid item xs={12} sm={6}>
             {loading ? (
-              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 3 }} />
+              <Skeleton variant="rectangular\" height={200} sx={{ borderRadius: 3 }} />
             ) : (
               <ElegantValueDisplay 
                 value={data.upsHumidity.kelembapan}
