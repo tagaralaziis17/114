@@ -268,7 +268,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
   // Memoize chart components to prevent unnecessary re-renders
   const chartComponent = useMemo(() => {
     if (loading) {
-      return <Skeleton variant="rectangular" height={300} width="100%" />;
+      return <Skeleton variant="rectangular\" height={300} width="100%" />;
     }
 
     switch (activeTab) {
