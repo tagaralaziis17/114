@@ -79,9 +79,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     const getPollingInterval = () => {
       switch(timeRange) {
         case 'realtime':
-          return 30000; // 30 seconds for realtime
+          return 10000; // 10 seconds for realtime (1 minute data)
         case '1h':
-          return 60000; // 1 minute for 1 hour view
+          return 30000; // 30 seconds for 1 hour view
         case '24h':
           return 300000; // 5 minutes for 24 hour view
         case '7d':
@@ -89,7 +89,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
         case '30d':
           return 1800000; // 30 minutes for 30 day view
         default:
-          return 60000;
+          return 30000;
       }
     };
 
@@ -280,9 +280,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
   const getTimeRangeLabel = () => {
     switch (timeRange) {
       case 'realtime':
-        return 'Real-time (Last 10 minutes)';
+        return 'Real-time (Last 1 minute)';
       case '1h':
-        return 'Last Hour';
+        return 'Last 1 Hour';
       case '24h':
         return 'Last 24 Hours';
       case '7d':

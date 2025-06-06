@@ -146,11 +146,11 @@ const fetchHistoricalData = async (timeRange) => {
     
     switch(timeRange) {
       case 'realtime':
-        // Last 10 minutes
-        startDate.setMinutes(now.getMinutes() - 10);
+        // Last 1 minute only
+        startDate.setMinutes(now.getMinutes() - 1);
         break;
       case '1h':
-        // Last 1 hour
+        // Last 1 hour only
         startDate.setHours(now.getHours() - 1);
         break;
       case '24h':
@@ -166,8 +166,8 @@ const fetchHistoricalData = async (timeRange) => {
         startDate.setDate(now.getDate() - 30);
         break;
       default:
-        // Default to last 10 minutes for realtime
-        startDate.setMinutes(now.getMinutes() - 10);
+        // Default to last 1 minute for realtime
+        startDate.setMinutes(now.getMinutes() - 1);
     }
     
     const startDateStr = startDate.toISOString().slice(0, 19).replace('T', ' ');
@@ -291,7 +291,7 @@ app.get('/api/export/:type', authenticateToken, async (req, res) => {
     let startDate = new Date(now);
     switch(timeRange) {
       case 'realtime':
-        startDate.setMinutes(now.getMinutes() - 10);
+        startDate.setMinutes(now.getMinutes() - 1);
         break;
       case '1h':
         startDate.setHours(now.getHours() - 1);
