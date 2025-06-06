@@ -122,19 +122,29 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     setZoomOffset(0);
   };
 
-  // Get zoomed data based on current zoom level and offset
-  const getZoomedData = (originalData: any[]) => {
+  // Improved data filtering with smooth interpolation
+  const getZoomedData = useCallback((originalData: any[]) => {
     if (!originalData || originalData.length === 0) return originalData;
     
     if (zoomLevel === 1) return originalData;
     
     const totalPoints = originalData.length;
-    const visiblePoints = Math.floor(totalPoints / zoomLevel);
-    const maxOffset = Math.max(0, totalPoints - visiblePoints);
-    const actualOffset = Math.min(zoomOffset, maxOffset);
+    const targetPoints = Math.max(50, Math.floor(totalPoints / zoomLevel)); // Minimum 50 points for smooth curves
+    const step = Math.max(1, Math.floor(totalPoints / targetPoints));
     
-    return originalData.slice(actualOffset, actualOffset + visiblePoints);
-  };
+    // Use step-based sampling to maintain data quality
+    const sampledData = [];
+    for (let i = 0; i < totalPoints; i += step) {
+      sampledData.push(originalData[i]);
+    }
+    
+    // Ensure we always include the last data point
+    if (sampledData[sampledData.length - 1] !== originalData[totalPoints - 1]) {
+      sampledData.push(originalData[totalPoints - 1]);
+    }
+    
+    return sampledData;
+  }, [zoomLevel]);
 
   const exportData = async () => {
     try {
@@ -226,9 +236,16 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
   };
 
   const getVisibleDataPointCount = () => {
-    const totalPoints = getDataPointCount();
-    if (zoomLevel === 1) return totalPoints;
-    return Math.floor(totalPoints / zoomLevel);
+    const originalData = activeTab === 0 
+      ? historicalData.temperature?.noc 
+      : activeTab === 1 
+        ? historicalData.humidity?.noc 
+        : historicalData.electrical;
+    
+    if (!originalData) return 0;
+    
+    const zoomedData = getZoomedData(originalData);
+    return zoomedData.length;
   };
 
   const getTimeRangeLabel = () => {
@@ -247,6 +264,44 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
         return '';
     }
   };
+
+  // Memoize chart components to prevent unnecessary re-renders
+  const chartComponent = useMemo(() => {
+    if (loading) {
+      return <Skeleton variant="rectangular" height={300} width="100%" />;
+    }
+
+    switch (activeTab) {
+      case 0:
+        return (
+          <TemperatureChart 
+            nocData={getZoomedData(historicalData.temperature?.noc || [])} 
+            upsData={getZoomedData(historicalData.temperature?.ups || [])} 
+            timeRange={timeRange}
+            zoomLevel={zoomLevel}
+          />
+        );
+      case 1:
+        return (
+          <HumidityChart 
+            nocData={getZoomedData(historicalData.humidity?.noc || [])} 
+            upsData={getZoomedData(historicalData.humidity?.ups || [])} 
+            timeRange={timeRange}
+            zoomLevel={zoomLevel}
+          />
+        );
+      case 2:
+        return (
+          <ElectricalChart 
+            data={getZoomedData(historicalData.electrical || [])} 
+            timeRange={timeRange}
+            zoomLevel={zoomLevel}
+          />
+        );
+      default:
+        return null;
+    }
+  }, [activeTab, historicalData, timeRange, zoomLevel, loading, getZoomedData]);
 
   return (
     <Card 
@@ -469,37 +524,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
       </Box>
       
       <CardContent>
-        {loading ? (
-          <Skeleton variant="rectangular\" height={300} width="100%" />
-        ) : (
-          <Box sx={{ mt: 1 }}>
-            {activeTab === 0 && (
-              <TemperatureChart 
-                nocData={getZoomedData(historicalData.temperature?.noc || [])} 
-                upsData={getZoomedData(historicalData.temperature?.ups || [])} 
-                timeRange={timeRange}
-                zoomLevel={zoomLevel}
-              />
-            )}
-            
-            {activeTab === 1 && (
-              <HumidityChart 
-                nocData={getZoomedData(historicalData.humidity?.noc || [])} 
-                upsData={getZoomedData(historicalData.humidity?.ups || [])} 
-                timeRange={timeRange}
-                zoomLevel={zoomLevel}
-              />
-            )}
-            
-            {activeTab === 2 && (
-              <ElectricalChart 
-                data={getZoomedData(historicalData.electrical || [])} 
-                timeRange={timeRange}
-                zoomLevel={zoomLevel}
-              />
-            )}
-          </Box>
-        )}
+        <Box sx={{ mt: 1 }}>
+          {chartComponent}
+        </Box>
         
         <Box 
           sx={{ 
