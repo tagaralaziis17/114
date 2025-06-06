@@ -145,17 +145,34 @@ const fetchHistoricalData = async (timeRange) => {
     let startDate = new Date(now);
     
     switch(timeRange) {
+      case 'realtime':
+        // Last 10 minutes
+        startDate.setMinutes(now.getMinutes() - 10);
+        break;
+      case '1h':
+        // Last 1 hour
+        startDate.setHours(now.getHours() - 1);
+        break;
+      case '24h':
+        // Last 24 hours
+        startDate.setDate(now.getDate() - 1);
+        break;
       case '7d':
+        // Last 7 days
         startDate.setDate(now.getDate() - 7);
         break;
       case '30d':
+        // Last 30 days
         startDate.setDate(now.getDate() - 30);
         break;
-      default: // 24h
-        startDate.setDate(now.getDate() - 1);
+      default:
+        // Default to last 10 minutes for realtime
+        startDate.setMinutes(now.getMinutes() - 10);
     }
     
     const startDateStr = startDate.toISOString().slice(0, 19).replace('T', ' ');
+    
+    console.log(`Fetching historical data for ${timeRange}: from ${startDateStr} to ${now.toISOString().slice(0, 19).replace('T', ' ')}`);
     
     // Fetch temperature data
     const [nocTemp] = await pool.query(`
@@ -198,6 +215,8 @@ const fetchHistoricalData = async (timeRange) => {
       WHERE waktu >= ?
       ORDER BY waktu ASC
     `, [startDateStr]);
+
+    console.log(`Historical data fetched - NOC Temp: ${nocTemp.length}, UPS Temp: ${upsTemp.length}, NOC Hum: ${nocHum.length}, UPS Hum: ${upsHum.length}, Electrical: ${electrical.length}`);
 
     return {
       temperature: {
@@ -271,13 +290,22 @@ app.get('/api/export/:type', authenticateToken, async (req, res) => {
     const now = new Date();
     let startDate = new Date(now);
     switch(timeRange) {
+      case 'realtime':
+        startDate.setMinutes(now.getMinutes() - 10);
+        break;
+      case '1h':
+        startDate.setHours(now.getHours() - 1);
+        break;
+      case '24h':
+        startDate.setDate(now.getDate() - 1);
+        break;
       case '7d':
         startDate.setDate(now.getDate() - 7);
         break;
       case '30d':
         startDate.setDate(now.getDate() - 30);
         break;
-      default: // 24h
+      default:
         startDate.setDate(now.getDate() - 1);
     }
     
@@ -469,10 +497,13 @@ io.on('connection', (socket) => {
 
   socket.on('request_historical_data', async ({ timeRange }) => {
     try {
+      console.log(`Received request for historical data: ${timeRange}`);
       const historicalData = await fetchHistoricalData(timeRange);
       socket.emit('historical_data_update', historicalData);
+      console.log(`Sent historical data for ${timeRange}`);
     } catch (error) {
       console.error('Error sending historical data:', error);
+      socket.emit('historical_data_error', { message: 'Failed to fetch historical data' });
     }
   });
 });

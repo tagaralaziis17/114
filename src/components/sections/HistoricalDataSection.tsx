@@ -46,6 +46,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
   const { socket } = useSocket();
   const [historicalData, setHistoricalData] = useState(data.historical);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [dataLoading, setDataLoading] = useState(false);
 
   const maxZoom = 5;
   const minZoom = 0.5;
@@ -55,23 +56,50 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     if (!socket) return;
 
     // Request initial data
+    setDataLoading(true);
     socket.emit('request_historical_data', { timeRange });
 
     // Listen for historical data updates
-    socket.on('historical_data_update', (newData) => {
+    const handleHistoricalDataUpdate = (newData: any) => {
+      console.log('Received historical data update:', newData);
       setHistoricalData(newData);
       setLastUpdate(new Date());
-    });
+      setDataLoading(false);
+    };
+
+    const handleHistoricalDataError = (error: any) => {
+      console.error('Historical data error:', error);
+      setDataLoading(false);
+    };
+
+    socket.on('historical_data_update', handleHistoricalDataUpdate);
+    socket.on('historical_data_error', handleHistoricalDataError);
 
     // Set up polling interval based on timeRange
+    const getPollingInterval = () => {
+      switch(timeRange) {
+        case 'realtime':
+          return 30000; // 30 seconds for realtime
+        case '1h':
+          return 60000; // 1 minute for 1 hour view
+        case '24h':
+          return 300000; // 5 minutes for 24 hour view
+        case '7d':
+          return 600000; // 10 minutes for 7 day view
+        case '30d':
+          return 1800000; // 30 minutes for 30 day view
+        default:
+          return 60000;
+      }
+    };
+
     const interval = setInterval(() => {
       socket.emit('request_historical_data', { timeRange });
-    }, timeRange === 'realtime' ? 60000 : // 1 minute for realtime
-       timeRange === '1h' ? 60000 : // 1 minute for 1h view
-       10000); // 10 seconds for other views
+    }, getPollingInterval());
 
     return () => {
-      socket.off('historical_data_update');
+      socket.off('historical_data_update', handleHistoricalDataUpdate);
+      socket.off('historical_data_error', handleHistoricalDataError);
       clearInterval(interval);
     };
   }, [socket, timeRange]);
@@ -84,6 +112,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
       setTimeRange(newTimeRange);
       setZoomLevel(1);
       setZoomOffset(0);
+      setDataLoading(true);
       socket?.emit('request_historical_data', { timeRange: newTimeRange });
     }
   };
@@ -251,7 +280,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
   const getTimeRangeLabel = () => {
     switch (timeRange) {
       case 'realtime':
-        return 'Real-time (1 min intervals)';
+        return 'Real-time (Last 10 minutes)';
       case '1h':
         return 'Last Hour';
       case '24h':
@@ -267,8 +296,20 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
 
   // Memoize chart components to prevent unnecessary re-renders
   const chartComponent = useMemo(() => {
-    if (loading) {
-      return <Skeleton variant="rectangular\" height={300} width="100%" />;
+    if (loading || dataLoading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    if (!historicalData || Object.keys(historicalData).length === 0) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }}>
+          <Typography color="text.secondary">No data available for the selected time range</Typography>
+        </Box>
+      );
     }
 
     switch (activeTab) {
@@ -301,7 +342,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
       default:
         return null;
     }
-  }, [activeTab, historicalData, timeRange, zoomLevel, loading, getZoomedData]);
+  }, [activeTab, historicalData, timeRange, zoomLevel, loading, dataLoading, getZoomedData]);
 
   return (
     <Card 
@@ -319,6 +360,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
             <Typography variant="h5" sx={{ ml: 1, fontWeight: 600 }}>
               Historical Data
             </Typography>
+            {dataLoading && (
+              <CircularProgress size={20} sx={{ ml: 2 }} />
+            )}
           </Box>
         } 
         action={
@@ -463,6 +507,8 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 '.MuiToggleButton-root': {
                   color: 'text.secondary',
+                  fontSize: '0.75rem',
+                  px: 1,
                   '&.Mui-selected': {
                     color: 'primary.main',
                     backgroundColor: 'rgba(63, 136, 242, 0.1)',
