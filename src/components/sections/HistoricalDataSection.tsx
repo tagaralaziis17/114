@@ -79,7 +79,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     const getPollingInterval = () => {
       switch(timeRange) {
         case 'realtime':
-          return 10000; // 10 seconds for realtime (1 minute data)
+          return 5000; // 5 seconds for realtime (1 minute data) - faster updates
         case '1h':
           return 30000; // 30 seconds for 1 hour view
         case '24h':
@@ -151,14 +151,42 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     setZoomOffset(0);
   };
 
-  // Improved data filtering with smooth interpolation
+  // Improved data filtering with better sampling for realtime
   const getZoomedData = useCallback((originalData: any[]) => {
     if (!originalData || originalData.length === 0) return originalData;
     
-    if (zoomLevel === 1) return originalData;
+    if (zoomLevel === 1) {
+      // For realtime at 1.0x zoom, ensure we have up to 1000 samples
+      if (timeRange === 'realtime') {
+        return originalData.slice(-1000); // Take last 1000 points
+      }
+      return originalData;
+    }
     
     const totalPoints = originalData.length;
-    const targetPoints = Math.max(50, Math.floor(totalPoints / zoomLevel)); // Minimum 50 points for smooth curves
+    
+    // Calculate target points based on zoom level and time range
+    let targetPoints;
+    switch(timeRange) {
+      case 'realtime':
+        targetPoints = Math.max(100, Math.floor(1000 / zoomLevel)); // Scale from 1000 base
+        break;
+      case '1h':
+        targetPoints = Math.max(60, Math.floor(300 / zoomLevel)); // Scale from 300 base
+        break;
+      case '24h':
+        targetPoints = Math.max(50, Math.floor(200 / zoomLevel)); // Scale from 200 base
+        break;
+      case '7d':
+        targetPoints = Math.max(40, Math.floor(150 / zoomLevel)); // Scale from 150 base
+        break;
+      case '30d':
+        targetPoints = Math.max(30, Math.floor(100 / zoomLevel)); // Scale from 100 base
+        break;
+      default:
+        targetPoints = Math.max(50, Math.floor(totalPoints / zoomLevel));
+    }
+    
     const step = Math.max(1, Math.floor(totalPoints / targetPoints));
     
     // Use step-based sampling to maintain data quality
@@ -173,7 +201,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     }
     
     return sampledData;
-  }, [zoomLevel]);
+  }, [zoomLevel, timeRange]);
 
   const exportData = async () => {
     try {
@@ -602,7 +630,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
             <Typography variant="body2" color="text.secondary">
               {zoomLevel > 1 
                 ? `${getVisibleDataPointCount()} of ${getDataPointCount()} samples (${zoomLevel.toFixed(1)}x zoom)`
-                : `${getDataPointCount()} samples`
+                : timeRange === 'realtime' 
+                  ? `${Math.min(getDataPointCount(), 1000)} samples (max 1000 for realtime)`
+                  : `${getDataPointCount()} samples`
               }
             </Typography>
           </Box>

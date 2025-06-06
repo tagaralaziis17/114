@@ -60,16 +60,16 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
       <Divider sx={{ opacity: 0.1 }} />
       <CardContent>
         <Grid container spacing={3}>
-          {/* Phase Voltage Gauges */}
-          <Grid item xs={12} md={7}>
+          {/* Phase Voltage Gauges - Made larger */}
+          <Grid item xs={12} md={8}>
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, opacity: 0.7 }}>
+              <Typography variant="subtitle1" sx={{ mb: 2, opacity: 0.7, fontSize: '1.1rem' }}>
                 Phase Voltage Monitoring
               </Typography>
               {loading ? (
-                <Skeleton variant="rectangular" height={250} width="100%" />
+                <Skeleton variant="rectangular" height={320} width="100%" />
               ) : (
-                <Grid container spacing={1} sx={{ mt: 1 }}>
+                <Grid container spacing={2} sx={{ mt: 1 }}>
                   <Grid item xs={12} md={4}>
                     <GaugeChart
                       value={data.phase_r}
@@ -118,15 +118,15 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
           </Grid>
 
           {/* Additional Electrical Parameters */}
-          <Grid item xs={12} md={5}>
-            <Typography variant="subtitle1" sx={{ mb: 1, opacity: 0.7 }}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle1" sx={{ mb: 2, opacity: 0.7, fontSize: '1.1rem' }}>
               Power Monitoring
             </Typography>
             {loading ? (
-              <Skeleton variant="rectangular" height={250} width="100%" />
+              <Skeleton variant="rectangular" height={320} width="100%" />
             ) : (
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <ValueDisplay 
                     value={data.power_3ph.toFixed(1)}
                     unit="kW"
@@ -135,7 +135,7 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
                     subtitle="Total Power"
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <ValueDisplay 
                     value={data.frequency_3ph.toFixed(1)}
                     unit="Hz"
@@ -144,7 +144,7 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
                     subtitle="Frequency"
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <ValueDisplay 
                     value={data.pf_3ph.toFixed(2)}
                     icon={<Activity size={20} />}
@@ -152,7 +152,7 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
                     subtitle="Power Factor"
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <ValueDisplay 
                     value={data.energy_3ph.toFixed(1)}
                     unit="kWh"
@@ -168,22 +168,22 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
 
         <Box 
           sx={{ 
-            mt: 2, 
-            p: 1, 
-            borderRadius: 1, 
+            mt: 3, 
+            p: 2, 
+            borderRadius: 2, 
             bgcolor: 'rgba(255, 183, 77, 0.1)', 
             border: '1px solid rgba(255, 183, 77, 0.2)' 
           }}
         >
           <Grid container spacing={1}>
             <Grid item xs={12} md={7}>
-              <Typography variant="caption" sx={{ display: 'block', color: 'warning.light' }}>
+              <Typography variant="body2" sx={{ display: 'block', color: 'warning.light', fontWeight: 500 }}>
                 <strong>Voltage Thresholds:</strong> Warning: {thresholds.warning.low}V - {thresholds.warning.high}V, 
                 Critical: {thresholds.critical.low}V - {thresholds.critical.high}V
               </Typography>
             </Grid>
             <Grid item xs={12} md={5}>
-              <Typography variant="caption" sx={{ display: 'block', color: 'warning.light' }}>
+              <Typography variant="body2" sx={{ display: 'block', color: 'warning.light', fontWeight: 500 }}>
                 <strong>Last Updated:</strong> {formatTime(data.waktu)}
               </Typography>
             </Grid>

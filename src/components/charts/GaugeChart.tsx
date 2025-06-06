@@ -41,13 +41,14 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
   ];
 
   return (
-    <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
+    <Box sx={{ width: '100%', height: 280, position: 'relative' }}>
       <Typography 
-        variant="subtitle1" 
+        variant="h6" 
         sx={{ 
           textAlign: 'center', 
-          mb: 1,
-          fontWeight: 500
+          mb: 2,
+          fontWeight: 600,
+          color: 'text.primary'
         }}
       >
         {title}
@@ -59,11 +60,11 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
           <Pie
             data={backgroundData}
             cx="50%"
-            cy="80%"
+            cy="75%"
             startAngle={180}
             endAngle={0}
-            innerRadius={60}
-            outerRadius={70}
+            innerRadius={80}
+            outerRadius={95}
             paddingAngle={0}
             dataKey="value"
           >
@@ -76,11 +77,11 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
           <Pie
             data={data}
             cx="50%"
-            cy="80%"
+            cy="75%"
             startAngle={180}
             endAngle={0}
-            innerRadius={50}
-            outerRadius={60}
+            innerRadius={65}
+            outerRadius={80}
             paddingAngle={0}
             dataKey="value"
           >
@@ -93,11 +94,11 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
                   <g>
                     <text
                       x={cx}
-                      y={cy - 5}
+                      y={cy - 10}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="#fff"
-                      fontSize="22"
+                      fontSize="28"
                       fontWeight="bold"
                     >
                       {value.toFixed(1)}
@@ -108,7 +109,8 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="#aaa"
-                      fontSize="12"
+                      fontSize="16"
+                      fontWeight="500"
                     >
                       {unit}
                     </text>
@@ -130,16 +132,49 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
       <Box 
         sx={{ 
           position: 'absolute', 
-          bottom: 10, 
+          bottom: 20, 
           left: 0, 
           width: '100%', 
           display: 'flex', 
           justifyContent: 'space-between',
-          px: 1
+          px: 2
         }}
       >
-        <Typography variant="caption" color="text.secondary">{min}{unit}</Typography>
-        <Typography variant="caption" color="text.secondary">{max}{unit}</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+          {min}{unit}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+          {max}{unit}
+        </Typography>
+      </Box>
+      
+      {/* Status indicator */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 50,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          px: 2,
+          py: 0.5,
+          borderRadius: 2,
+          bgcolor: `${color}20`,
+          border: `1px solid ${color}`,
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: color,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: 1
+          }}
+        >
+          {percentage < 20 || percentage > 80 ? 'ALERT' : 
+           percentage < 30 || percentage > 70 ? 'WARNING' : 'NORMAL'}
+        </Typography>
       </Box>
     </Box>
   );
