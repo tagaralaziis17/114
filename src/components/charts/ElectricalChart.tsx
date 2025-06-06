@@ -32,7 +32,7 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
       const date = parseISO(tickItem);
       switch(timeRange) {
         case 'realtime':
-          return format(date, 'HH:mm:ss'); // Show seconds for realtime
+          return format(date, 'HH:mm:ss'); // Show seconds for realtime (1 minute)
         case '1h':
           return format(date, 'HH:mm'); // Show minutes for 1 hour
         case '24h':
@@ -56,9 +56,9 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
     
     switch(timeRange) {
       case 'realtime':
-        return Math.max(1, Math.floor(dataLength / 8)); // Show ~8 ticks for realtime
+        return Math.max(1, Math.floor(dataLength / 6)); // Show ~6 ticks for 1 minute (every 10 seconds)
       case '1h':
-        return Math.max(1, Math.floor(dataLength / 10)); // Show ~10 ticks for 1 hour
+        return Math.max(1, Math.floor(dataLength / 12)); // Show ~12 ticks for 1 hour (every 5 minutes)
       case '24h':
         return Math.max(1, Math.floor(dataLength / 12)); // Show ~12 ticks for 24h
       case '7d':
@@ -79,8 +79,11 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
 
   // Get dot size based on zoom level and time range
   const getDotSize = () => {
-    if (timeRange === 'realtime' || timeRange === '1h') {
-      return zoomLevel >= 2 ? 4 : 3; // Show dots for short time ranges
+    if (timeRange === 'realtime') {
+      return 4; // Always show dots for realtime (1 minute data)
+    }
+    if (timeRange === '1h') {
+      return zoomLevel >= 2 ? 4 : 3; // Show dots for 1 hour data
     }
     if (zoomLevel >= 4) return 4;
     if (zoomLevel >= 3) return 3;
@@ -96,10 +99,10 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
         
         switch(timeRange) {
           case 'realtime':
-            formattedDate = format(date, 'HH:mm:ss');
+            formattedDate = format(date, 'HH:mm:ss'); // Show exact time for 1 minute
             break;
           case '1h':
-            formattedDate = format(date, 'HH:mm');
+            formattedDate = format(date, 'HH:mm'); // Show time for 1 hour
             break;
           case '24h':
             formattedDate = format(date, 'dd MMM HH:mm');
@@ -167,8 +170,9 @@ const ElectricalChart = ({ data, timeRange, zoomLevel = 1 }: ElectricalChartProp
   const getXAxisAngle = () => {
     switch(timeRange) {
       case 'realtime':
+        return -30; // Angle for realtime to show seconds clearly
       case '1h':
-        return 0; // Horizontal for short ranges
+        return 0; // Horizontal for 1 hour
       case '24h':
         return -30; // Slight angle for medium range
       case '7d':
