@@ -49,27 +49,46 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
       <CardHeader 
         title={
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Zap size={24} color="#ffb74d" />
-            <Typography variant="h5" sx={{ ml: 1, fontWeight: 600 }}>
-              Electrical Monitoring
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, rgba(255, 183, 77, 0.2), rgba(255, 193, 7, 0.2))',
+                border: '1px solid rgba(255, 183, 77, 0.3)',
+                mr: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Zap size={24} color="#ffb74d" />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 600 }}>
+              Electrical Power Monitoring
             </Typography>
           </Box>
         } 
         sx={{ pb: 1 }}
       />
       <Divider sx={{ opacity: 0.1 }} />
-      <CardContent>
+      <CardContent sx={{ p: 3 }}>
         <Grid container spacing={3}>
-          {/* Phase Voltage Gauges - Made larger */}
-          <Grid item xs={12} md={8}>
+          {/* Phase Voltage Gauges - Made larger and better layout */}
+          <Grid item xs={12} md={9}>
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 2, opacity: 0.7, fontSize: '1.1rem' }}>
+              <Typography variant="h6" sx={{ 
+                mb: 2, 
+                opacity: 0.9, 
+                fontSize: '1.2rem',
+                fontWeight: 600,
+                color: 'text.primary'
+              }}>
                 Phase Voltage Monitoring
               </Typography>
               {loading ? (
-                <Skeleton variant="rectangular" height={320} width="100%" />
+                <Skeleton variant="rectangular" height={360} width="100%" sx={{ borderRadius: 2 }} />
               ) : (
-                <Grid container spacing={2} sx={{ mt: 1 }}>
+                <Grid container spacing={2}>
                   <Grid item xs={12} md={4}>
                     <GaugeChart
                       value={data.phase_r}
@@ -117,13 +136,19 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
             </Box>
           </Grid>
 
-          {/* Additional Electrical Parameters */}
-          <Grid item xs={12} md={4}>
-            <Typography variant="subtitle1" sx={{ mb: 2, opacity: 0.7, fontSize: '1.1rem' }}>
-              Power Monitoring
+          {/* Additional Electrical Parameters - Compact layout */}
+          <Grid item xs={12} md={3}>
+            <Typography variant="h6" sx={{ 
+              mb: 2, 
+              opacity: 0.9, 
+              fontSize: '1.2rem',
+              fontWeight: 600,
+              color: 'text.primary'
+            }}>
+              Power Metrics
             </Typography>
             {loading ? (
-              <Skeleton variant="rectangular" height={320} width="100%" />
+              <Skeleton variant="rectangular" height={360} width="100%" sx={{ borderRadius: 2 }} />
             ) : (
               <Grid container spacing={2}>
                 <Grid item xs={12}>
@@ -166,24 +191,45 @@ const ElectricalSection = ({ data, loading, thresholds }: ElectricalSectionProps
           </Grid>
         </Grid>
 
+        {/* Enhanced information panel */}
         <Box 
           sx={{ 
             mt: 3, 
-            p: 2, 
+            p: 2.5, 
             borderRadius: 2, 
-            bgcolor: 'rgba(255, 183, 77, 0.1)', 
-            border: '1px solid rgba(255, 183, 77, 0.2)' 
+            background: 'linear-gradient(135deg, rgba(255, 183, 77, 0.1), rgba(255, 193, 7, 0.05))',
+            border: '1px solid rgba(255, 183, 77, 0.2)',
+            backdropFilter: 'blur(10px)'
           }}
         >
-          <Grid container spacing={1}>
-            <Grid item xs={12} md={7}>
-              <Typography variant="body2" sx={{ display: 'block', color: 'warning.light', fontWeight: 500 }}>
+          <Typography variant="subtitle2" sx={{ 
+            display: 'block', 
+            color: 'warning.light', 
+            fontWeight: 600,
+            mb: 1,
+            fontSize: '1rem'
+          }}>
+            System Information
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={8}>
+              <Typography variant="body2" sx={{ 
+                display: 'block', 
+                color: 'warning.light', 
+                fontWeight: 500,
+                opacity: 0.9
+              }}>
                 <strong>Voltage Thresholds:</strong> Warning: {thresholds.warning.low}V - {thresholds.warning.high}V, 
                 Critical: {thresholds.critical.low}V - {thresholds.critical.high}V
               </Typography>
             </Grid>
-            <Grid item xs={12} md={5}>
-              <Typography variant="body2" sx={{ display: 'block', color: 'warning.light', fontWeight: 500 }}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="body2" sx={{ 
+                display: 'block', 
+                color: 'warning.light', 
+                fontWeight: 500,
+                opacity: 0.9
+              }}>
                 <strong>Last Updated:</strong> {formatTime(data.waktu)}
               </Typography>
             </Grid>

@@ -40,19 +40,59 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
     { name: 'Danger High', value: 100 - normalHigh, color: '#ff5252' },
   ];
 
+  // Get status based on value
+  const getStatus = () => {
+    if (value <= thresholds.danger[0] || value >= thresholds.danger[1]) return 'CRITICAL';
+    if (value <= thresholds.warning[0] || value >= thresholds.warning[1]) return 'WARNING';
+    return 'NORMAL';
+  };
+
+  const status = getStatus();
+
   return (
-    <Box sx={{ width: '100%', height: 280, position: 'relative' }}>
+    <Box sx={{ width: '100%', height: 320, position: 'relative' }}>
       <Typography 
         variant="h6" 
         sx={{ 
           textAlign: 'center', 
-          mb: 2,
+          mb: 1,
           fontWeight: 600,
-          color: 'text.primary'
+          color: 'text.primary',
+          fontSize: '1.1rem'
         }}
       >
         {title}
       </Typography>
+      
+      {/* Status indicator at top */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 40,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          px: 2,
+          py: 0.5,
+          borderRadius: 2,
+          bgcolor: `${color}20`,
+          border: `1px solid ${color}`,
+          backdropFilter: 'blur(10px)',
+          zIndex: 10,
+        }}
+      >
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            color: color,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+            fontSize: '0.75rem'
+          }}
+        >
+          {status}
+        </Typography>
+      </Box>
       
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
@@ -60,11 +100,11 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
           <Pie
             data={backgroundData}
             cx="50%"
-            cy="75%"
+            cy="70%"
             startAngle={180}
             endAngle={0}
-            innerRadius={80}
-            outerRadius={95}
+            innerRadius={90}
+            outerRadius={110}
             paddingAngle={0}
             dataKey="value"
           >
@@ -77,11 +117,11 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
           <Pie
             data={data}
             cx="50%"
-            cy="75%"
+            cy="70%"
             startAngle={180}
             endAngle={0}
-            innerRadius={65}
-            outerRadius={80}
+            innerRadius={70}
+            outerRadius={90}
             paddingAngle={0}
             dataKey="value"
           >
@@ -94,22 +134,22 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
                   <g>
                     <text
                       x={cx}
-                      y={cy - 10}
+                      y={cy - 15}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="#fff"
-                      fontSize="28"
+                      fontSize="32"
                       fontWeight="bold"
                     >
                       {value.toFixed(1)}
                     </text>
                     <text
                       x={cx}
-                      y={cy + 20}
+                      y={cy + 15}
                       textAnchor="middle"
                       dominantBaseline="central"
                       fill="#aaa"
-                      fontSize="16"
+                      fontSize="18"
                       fontWeight="500"
                     >
                       {unit}
@@ -129,15 +169,16 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
         </PieChart>
       </ResponsiveContainer>
       
+      {/* Min/Max labels */}
       <Box 
         sx={{ 
           position: 'absolute', 
-          bottom: 20, 
+          bottom: 30, 
           left: 0, 
           width: '100%', 
           display: 'flex', 
           justifyContent: 'space-between',
-          px: 2
+          px: 3
         }}
       >
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
@@ -145,35 +186,6 @@ const GaugeChart = ({ value, title, min, max, unit, color, thresholds }: GaugeCh
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
           {max}{unit}
-        </Typography>
-      </Box>
-      
-      {/* Status indicator */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 50,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          px: 2,
-          py: 0.5,
-          borderRadius: 2,
-          bgcolor: `${color}20`,
-          border: `1px solid ${color}`,
-          backdropFilter: 'blur(10px)',
-        }}
-      >
-        <Typography 
-          variant="caption" 
-          sx={{ 
-            color: color,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: 1
-          }}
-        >
-          {percentage < 20 || percentage > 80 ? 'ALERT' : 
-           percentage < 30 || percentage > 70 ? 'WARNING' : 'NORMAL'}
         </Typography>
       </Box>
     </Box>

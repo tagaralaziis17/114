@@ -79,9 +79,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     const getPollingInterval = () => {
       switch(timeRange) {
         case 'realtime':
-          return 5000; // 5 seconds for realtime (1 minute data) - faster updates
+          return 3000; // 3 seconds for realtime (1 minute data) - very fast updates
         case '1h':
-          return 30000; // 30 seconds for 1 hour view
+          return 15000; // 15 seconds for 1 hour view
         case '24h':
           return 300000; // 5 minutes for 24 hour view
         case '7d':
@@ -89,7 +89,7 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
         case '30d':
           return 1800000; // 30 minutes for 30 day view
         default:
-          return 30000;
+          return 15000;
       }
     };
 
@@ -151,14 +151,18 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     setZoomOffset(0);
   };
 
-  // Improved data filtering with better sampling for realtime
+  // Optimized data filtering for specific requirements
   const getZoomedData = useCallback((originalData: any[]) => {
     if (!originalData || originalData.length === 0) return originalData;
     
     if (zoomLevel === 1) {
-      // For realtime at 1.0x zoom, ensure we have up to 1000 samples
+      // For realtime at 1.0x zoom, ensure we have exactly 100 samples for last 1 minute
       if (timeRange === 'realtime') {
-        return originalData.slice(-1000); // Take last 1000 points
+        return originalData.slice(-100); // Take last 100 points exactly
+      }
+      // For 1H at 1.0x zoom, show all data for the last 1 hour
+      if (timeRange === '1h') {
+        return originalData; // Show all data points for 1 hour
       }
       return originalData;
     }
@@ -169,10 +173,10 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
     let targetPoints;
     switch(timeRange) {
       case 'realtime':
-        targetPoints = Math.max(100, Math.floor(1000 / zoomLevel)); // Scale from 1000 base
+        targetPoints = Math.max(50, Math.floor(100 / zoomLevel)); // Scale from 100 base
         break;
       case '1h':
-        targetPoints = Math.max(60, Math.floor(300 / zoomLevel)); // Scale from 300 base
+        targetPoints = Math.max(60, Math.floor(240 / zoomLevel)); // Scale from 240 base (4 points per minute)
         break;
       case '24h':
         targetPoints = Math.max(50, Math.floor(200 / zoomLevel)); // Scale from 200 base
@@ -308,9 +312,9 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
   const getTimeRangeLabel = () => {
     switch (timeRange) {
       case 'realtime':
-        return 'Real-time (Last 1 minute)';
+        return 'Real-time (Last 1 minute - 100 samples)';
       case '1h':
-        return 'Last 1 Hour';
+        return 'Last 1 Hour (Complete data)';
       case '24h':
         return 'Last 24 Hours';
       case '7d':
@@ -631,8 +635,10 @@ const HistoricalDataSection = ({ data, loading, isMobile }: HistoricalDataSectio
               {zoomLevel > 1 
                 ? `${getVisibleDataPointCount()} of ${getDataPointCount()} samples (${zoomLevel.toFixed(1)}x zoom)`
                 : timeRange === 'realtime' 
-                  ? `${Math.min(getDataPointCount(), 1000)} samples (max 1000 for realtime)`
-                  : `${getDataPointCount()} samples`
+                  ? `${Math.min(getDataPointCount(), 100)} samples (last 1 minute)`
+                  : timeRange === '1h'
+                    ? `${getDataPointCount()} samples (complete 1 hour)`
+                    : `${getDataPointCount()} samples`
               }
             </Typography>
           </Box>
